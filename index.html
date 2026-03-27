@@ -2,7 +2,7 @@
 <html>
 <body>
 
-<h2>Monte Carlo Simulation of sample proportions</h2>
+<h2><b>Monte Carlo Simulation of sample proportions</b></h2>
 
 <label>Sample Size (n):</label>
 <select id="n">
@@ -34,6 +34,12 @@
   <option value="1.96" selected>95%</option>
   <option value="2.576">99%</option>
 </select>
+
+<br><br>
+
+<label>
+  <input type="checkbox" id="slow"> Slow simulation (50%)
+</label>
 
 <br><br>
 
@@ -101,7 +107,7 @@ function togglePause() {
   if (!paused) animate();
 }
 
-// --- STEP BUTTON ---
+// --- STEP ---
 function stepOnce() {
   if (animationIndex <= storedData.length) {
     drawPlot(
@@ -126,7 +132,10 @@ function animate() {
 
   animationIndex++;
 
-  setTimeout(animate, 20);
+  // speed control
+  let delay = document.getElementById("slow").checked ? 40 : 20;
+
+  setTimeout(animate, delay);
 }
 
 // --- DRAW ---
@@ -158,13 +167,23 @@ function drawPlot(data, intervals, trueP) {
     30
   );
 
-  // --- LIVE COUNTER ---
+  // --- COUNTER ---
   ctx.font = "16px Arial";
   ctx.fillText(
     data.length + " / " + storedData.length + " trials",
-    canvas.width - 200,
+    canvas.width - 220,
     30
   );
+
+  // --- LIVE p-bar DISPLAY ---
+  if (data.length > 0) {
+    let current = data[data.length - 1].toFixed(2);
+    ctx.fillText(
+      "p̄ " + data.length + " = " + current,
+      canvas.width - 220,
+      55
+    );
+  }
 
   // --- AXES ---
   ctx.beginPath();
@@ -175,7 +194,7 @@ function drawPlot(data, intervals, trueP) {
 
   ctx.fillText("Trial", canvas.width / 2, canvas.height - 20);
 
-  // --- IMPROVED p-bar label ---
+  // --- p-bar label ---
   ctx.font = "20px Arial";
   ctx.fillText("p̄", padding - 35, padding - 25);
 
@@ -221,7 +240,7 @@ function drawPlot(data, intervals, trueP) {
       ctx.lineWidth = 1.5;
     } else {
       ctx.strokeStyle = "red";
-      ctx.lineWidth = 2.5; // thicker for misses
+      ctx.lineWidth = 2.5;
     }
 
     ctx.beginPath();
