@@ -54,9 +54,10 @@
 <script>
 let animationIndex = 0;
 let paused = false;
-let storedData = null;
-let storedIntervals = null;
+let storedData = [];
+let storedIntervals = [];
 let storedTrueP = null;
+let selectedIndex = null;
 
 // --- SIMULATION ---
 function simulate(n, p, trials, z) {
@@ -97,9 +98,30 @@ function startSimulation() {
 
   animationIndex = 0;
   paused = false;
+  selectedIndex = null;
 
   animate();
 }
+
+// --- CLICK HANDLER ---
+document.getElementById("chart").addEventListener("click", function(event) {
+  const rect = this.getBoundingClientRect();
+  const xClick = event.clientX - rect.left;
+
+  const padding = 80;
+  const usableWidth = this.width - 2 * padding;
+
+  let index = Math.floor((xClick - padding) / usableWidth * storedIntervals.length);
+
+  if (index >= 0 && index < animationIndex) {
+    selectedIndex = index;
+    drawPlot(
+      storedData.slice(0, animationIndex),
+      storedIntervals.slice(0, animationIndex),
+      storedTrueP
+    );
+  }
+});
 
 // --- PAUSE ---
 function togglePause() {
@@ -132,9 +154,7 @@ function animate() {
 
   animationIndex++;
 
-  // speed control
   let delay = document.getElementById("slow").checked ? 40 : 20;
-
   setTimeout(animate, delay);
 }
 
@@ -150,16 +170,13 @@ function drawPlot(data, intervals, trueP) {
   // --- COVERAGE ---
   let count = 0;
   intervals.forEach(interval => {
-    if (interval.lower <= trueP && interval.upper >= trueP) {
-      count++;
-    }
+    if (interval.lower <= trueP && interval.upper >= trueP) count++;
   });
 
   let coverage = intervals.length > 0
     ? (count / intervals.length * 100).toFixed(1)
     : 0;
 
-  // --- TITLE ---
   ctx.font = "18px Arial";
   ctx.fillText(
     "Confidence intervals, " + coverage + "% included π",
@@ -167,22 +184,15 @@ function drawPlot(data, intervals, trueP) {
     30
   );
 
-  // --- COUNTER ---
-  ctx.font = "16px Arial";
   ctx.fillText(
     data.length + " / " + storedData.length + " trials",
     canvas.width - 220,
     30
   );
 
-  // --- LIVE p-bar DISPLAY ---
   if (data.length > 0) {
     let current = data[data.length - 1].toFixed(2);
-    ctx.fillText(
-      "p̄ " + data.length + " = " + current,
-      canvas.width - 220,
-      55
-    );
+    ctx.fillText("p̄ " + data.length + " = " + current, canvas.width - 220, 55);
   }
 
   // --- AXES ---
@@ -193,12 +203,9 @@ function drawPlot(data, intervals, trueP) {
   ctx.stroke();
 
   ctx.fillText("Trial", canvas.width / 2, canvas.height - 20);
-
-  // --- p-bar label ---
   ctx.font = "20px Arial";
   ctx.fillText("p̄", padding - 35, padding - 25);
 
-  // Y ticks
   ctx.font = "14px Arial";
   for (let i = 0; i <= 10; i++) {
     let val = i / 10;
@@ -247,6 +254,16 @@ function drawPlot(data, intervals, trueP) {
     ctx.moveTo(x, yLower);
     ctx.lineTo(x, yUpper);
     ctx.stroke();
+
+    // highlight selected
+    if (i === selectedIndex) {
+      ctx.strokeStyle = "orange";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x, yLower);
+      ctx.lineTo(x, yUpper);
+      ctx.stroke();
+    }
   });
 
   ctx.lineWidth = 1;
@@ -261,6 +278,21 @@ function drawPlot(data, intervals, trueP) {
     ctx.fillStyle = "blue";
     ctx.fill();
   });
+
+  // --- DISPLAY SELECTED INFO ---
+  if (selectedIndex !== null && selectedIndex < intervals.length) {
+    let sel = intervals[selectedIndex];
+
+    ctx.fillStyle = "black";
+    ctx.fillText(
+      "Trial " + (selectedIndex + 1) +
+      ": p̄=" + sel.phat.toFixed(2) +
+      ", LL=" + sel.lower.toFixed(2) +
+      ", UL=" + sel.upper.toFixed(2),
+      100,
+      60
+    );
+  }
 }
 </script>
 
