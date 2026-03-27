@@ -2,42 +2,35 @@
 <html>
 <body>
 
-<h2>Chart Test</h2>
+<h2>Simple Chart Test (No Libraries)</h2>
 
 <button onclick="drawChart()">Click Me</button>
 
 <br><br>
 
-<canvas id="chart"></canvas>
-
-<!-- Load Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<canvas id="chart" width="400" height="300" style="border:1px solid black;"></canvas>
 
 <script>
 function drawChart() {
-  alert("Button works");
+  alert("Drawing chart...");
 
-  if (typeof Chart === "undefined") {
-    alert("Chart.js NOT loaded");
-    return;
+  const canvas = document.getElementById("chart");
+  const ctx = canvas.getContext("2d");
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const data = [5, 10, 3, 8];
+  const barWidth = 50;
+  const gap = 20;
+
+  for (let i = 0; i < data.length; i++) {
+    let x = i * (barWidth + gap) + 20;
+    let y = canvas.height - data[i] * 20;
+
+    ctx.fillStyle = "blue";
+    ctx.fillRect(x, y, barWidth, data[i] * 20);
   }
-
-  const ctx = document.getElementById("chart").getContext("2d");
-
-  if (window.chart) {
-    window.chart.destroy();
-  }
-
-  window.chart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: ["A", "B", "C"],
-      datasets: [{
-        label: "Test Data",
-        data: [5, 10, 3]
-      }]
-    }
-  });
 }
 </script>
 
