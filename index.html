@@ -6,9 +6,9 @@
 
 <label>Sample Size (n):</label>
 <select id="n">
-  <option>10</option>
-  <option>50</option>
-  <option>100</option>
+  <option>30</option>
+  <option>60</option>
+  <option>90</option>
 </select>
 
 <br><br>
@@ -21,8 +21,9 @@
 <label>Simulations:</label>
 <select id="trials">
   <option>100</option>
+  <option>200</option>
+  <option>400</option>
   <option>500</option>
-  <option>1000</option>
 </select>
 
 <br><br>
@@ -31,14 +32,14 @@
 
 <br><br>
 
-<canvas id="chart" width="1000" height="500" style="border:1px solid black;"></canvas>
+<canvas id="chart" width="1100" height="550" style="border:1px solid black;"></canvas>
 
 <script>
 function simulate(n, p, trials) {
   let results = [];
   let intervals = [];
 
-  let z = 1.96; // 95% confidence
+  let z = 1.96;
 
   for (let i = 0; i < trials; i++) {
     let successes = 0;
@@ -75,26 +76,41 @@ function drawPlot(data, intervals, trueP) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const padding = 70;
+  const padding = 80;
 
-  // Draw axes
+  // --- COVERAGE CALCULATION ---
+  let count = 0;
+  intervals.forEach(interval => {
+    if (interval.lower <= trueP && interval.upper >= trueP) {
+      count++;
+    }
+  });
+
+  let coverage = (count / intervals.length * 100).toFixed(1);
+
+  // --- TITLE ---
+  ctx.font = "18px Arial";
+  ctx.fillText(
+    "95% confidence intervals, " + coverage + "% of the sample intervals obtained included the true proportion π",
+    canvas.width / 2 - 350,
+    30
+  );
+
+  // --- AXES ---
   ctx.beginPath();
   ctx.moveTo(padding, padding);
   ctx.lineTo(padding, canvas.height - padding);
   ctx.lineTo(canvas.width - padding, canvas.height - padding);
   ctx.stroke();
 
-  // Labels
-  ctx.font = "16px Arial";
+  // X-axis label
   ctx.fillText("Trial", canvas.width / 2, canvas.height - 20);
 
-  ctx.save();
-  ctx.translate(25, canvas.height / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillText("p-hat", 0, 0);
-  ctx.restore();
+  // Y-axis label (p-hat with bar)
+  ctx.font = "16px Arial";
+  ctx.fillText("p̄", padding - 30, padding - 10);
 
-  // Y-axis ticks (0 to 1)
+  // --- Y TICKS ---
   for (let i = 0; i <= 10; i++) {
     let val = i / 10;
     let y = canvas.height - padding - val * (canvas.height - 2 * padding);
@@ -107,7 +123,7 @@ function drawPlot(data, intervals, trueP) {
     ctx.stroke();
   }
 
-  // 🔴 Draw TRUE p line
+  // --- TRUE p LINE ---
   let yTrue = canvas.height - padding - trueP * (canvas.height - 2 * padding);
 
   ctx.beginPath();
@@ -118,19 +134,18 @@ function drawPlot(data, intervals, trueP) {
   ctx.stroke();
 
   ctx.fillStyle = "red";
-  ctx.fillText("true p", canvas.width - padding + 5, yTrue + 5);
+  ctx.fillText("π", canvas.width - padding + 10, yTrue + 5);
 
   ctx.strokeStyle = "black";
   ctx.lineWidth = 1;
 
-  // Draw confidence intervals
+  // --- CONFIDENCE INTERVALS ---
   intervals.forEach((interval, i) => {
     let x = padding + i / intervals.length * (canvas.width - 2 * padding);
 
     let yLower = canvas.height - padding - interval.lower * (canvas.height - 2 * padding);
     let yUpper = canvas.height - padding - interval.upper * (canvas.height - 2 * padding);
 
-    // Color based on coverage
     if (interval.lower <= trueP && interval.upper >= trueP) {
       ctx.strokeStyle = "green";
     } else {
@@ -143,7 +158,7 @@ function drawPlot(data, intervals, trueP) {
     ctx.stroke();
   });
 
-  // Draw dots on top
+  // --- DOTS ---
   data.forEach((phat, i) => {
     let x = padding + i / data.length * (canvas.width - 2 * padding);
     let y = canvas.height - padding - phat * (canvas.height - 2 * padding);
