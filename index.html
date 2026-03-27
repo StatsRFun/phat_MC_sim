@@ -2,35 +2,93 @@
 <html>
 <body>
 
-<h2>Simple Chart Test (No Libraries)</h2>
+<h2>Monte Carlo Simulation of p-hat</h2>
 
-<button onclick="drawChart()">Click Me</button>
+<label>Sample Size (n):</label>
+<select id="n">
+  <option>10</option>
+  <option>50</option>
+  <option>100</option>
+</select>
 
 <br><br>
 
-<canvas id="chart" width="400" height="300" style="border:1px solid black;"></canvas>
+<label>True Proportion (p):</label>
+<input type="number" id="p" value="0.5" step="0.01" min="0" max="1">
+
+<br><br>
+
+<label>Simulations:</label>
+<select id="trials">
+  <option>100</option>
+  <option>500</option>
+  <option>1000</option>
+</select>
+
+<br><br>
+
+<button onclick="runSimulation()">Run Simulation</button>
+
+<br><br>
+
+<canvas id="chart" width="500" height="300" style="border:1px solid black;"></canvas>
 
 <script>
-function drawChart() {
-  alert("Drawing chart...");
+function simulate(n, p, trials) {
+  let results = [];
 
+  for (let i = 0; i < trials; i++) {
+    let successes = 0;
+
+    for (let j = 0; j < n; j++) {
+      if (Math.random() < p) successes++;
+    }
+
+    results.push(successes / n);
+  }
+
+  return results;
+}
+
+function runSimulation() {
+  const n = parseInt(document.getElementById("n").value);
+  const p = parseFloat(document.getElementById("p").value);
+  const trials = parseInt(document.getElementById("trials").value);
+
+  const data = simulate(n, p, trials);
+
+  drawHistogram(data);
+}
+
+function drawHistogram(data) {
   const canvas = document.getElementById("chart");
   const ctx = canvas.getContext("2d");
 
-  // Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const data = [5, 10, 3, 8];
-  const barWidth = 50;
-  const gap = 20;
+  // Create bins
+  let bins = {};
+  data.forEach(val => {
+    let key = Math.round(val * 20) / 20; // bin width ~0.05
+    bins[key] = (bins[key] || 0) + 1;
+  });
 
-  for (let i = 0; i < data.length; i++) {
-    let x = i * (barWidth + gap) + 20;
-    let y = canvas.height - data[i] * 20;
+  let keys = Object.keys(bins).map(Number).sort((a, b) => a - b);
+  let maxCount = Math.max(...Object.values(bins));
+
+  const barWidth = canvas.width / keys.length;
+
+  keys.forEach((key, i) => {
+    let count = bins[key];
+
+    let barHeight = (count / maxCount) * (canvas.height - 20);
+
+    let x = i * barWidth;
+    let y = canvas.height - barHeight;
 
     ctx.fillStyle = "blue";
-    ctx.fillRect(x, y, barWidth, data[i] * 20);
-  }
+    ctx.fillRect(x, y, barWidth - 2, barHeight);
+  });
 }
 </script>
 
