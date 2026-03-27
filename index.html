@@ -57,39 +57,55 @@ function runSimulation() {
 
   const data = simulate(n, p, trials);
 
-  drawHistogram(data);
-}
-
+  
 function drawHistogram(data) {
   const canvas = document.getElementById("chart");
   const ctx = canvas.getContext("2d");
 
+  // Make canvas wider
+  canvas.width = 800;
+  canvas.height = 400;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Create bins
-  let bins = {};
-  data.forEach(val => {
-    let key = Math.round(val * 20) / 20; // bin width ~0.05
-    bins[key] = (bins[key] || 0) + 1;
-  });
+  // Axis padding
+  const padding = 50;
 
-  let keys = Object.keys(bins).map(Number).sort((a, b) => a - b);
-  let maxCount = Math.max(...Object.values(bins));
+  // Draw axes
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, canvas.height - padding);
+  ctx.lineTo(canvas.width - padding, canvas.height - padding);
+  ctx.stroke();
 
-  const barWidth = canvas.width / keys.length;
+  // Labels
+  ctx.font = "14px Arial";
+  ctx.fillText("p-hat", canvas.width / 2, canvas.height - 10);
+  ctx.save();
+  ctx.translate(15, canvas.height / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Trial", 0, 0);
+  ctx.restore();
 
-  keys.forEach((key, i) => {
-    let count = bins[key];
+  // Plot dots
+  const xMin = 0;
+  const xMax = 1;
 
-    let barHeight = (count / maxCount) * (canvas.height - 20);
+  data.forEach((phat, i) => {
+    // Map p-hat to x position
+    let x = padding + (phat - xMin) / (xMax - xMin) * (canvas.width - 2 * padding);
 
-    let x = i * barWidth;
-    let y = canvas.height - barHeight;
+    // Map trial index to y position
+    let y = padding + i / data.length * (canvas.height - 2 * padding);
 
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, 2 * Math.PI);
     ctx.fillStyle = "blue";
-    ctx.fillRect(x, y, barWidth - 2, barHeight);
+    ctx.fill();
   });
 }
+
+  
 </script>
 
 </body>
