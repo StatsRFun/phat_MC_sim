@@ -1,112 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Monte Carlo p-hat Simulator</title>
+  <title>Chart Test</title>
 </head>
 
 <body>
-  <h2>Monte Carlo Simulation of p-hat</h2>
+  <h2>Test Chart</h2>
 
-  <label>Sample Size (n):</label>
-  <select id="n">
-    <option>10</option>
-    <option>50</option>
-    <option>100</option>
-  </select>
+  <button onclick="drawChart()">Click Me</button>
 
   <br><br>
 
-  <label>True Proportion (p):</label>
-  <input type="number" id="p" value="0.5" step="0.01" min="0" max="1">
-
-  <br><br>
-
-  <label>Simulations:</label>
-  <select id="trials">
-    <option>100</option>
-    <option>500</option>
-    <option>1000</option>
-  </select>
-
-  <br><br>
-
-  <button onclick="runSimulation()">Run Simulation</button>
-
-  <h3>Distribution of p-hat</h3>
   <canvas id="chart"></canvas>
 
-  <!-- Load Chart.js FIRST -->
+  <!-- Load Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Your JavaScript -->
   <script>
-    function simulate(n, p, trials) {
-      let results = [];
-
-      for (let i = 0; i < trials; i++) {
-        let successes = 0;
-
-        for (let j = 0; j < n; j++) {
-          if (Math.random() < p) successes++;
-        }
-
-        results.push(successes / n);
-      }
-
-      return results;
-    }
-
-    function runSimulation() {
-      console.log("Simulation started");
-
-      const n = parseInt(document.getElementById("n").value);
-      const p = parseFloat(document.getElementById("p").value);
-      const trials = parseInt(document.getElementById("trials").value);
-
-      const data = simulate(n, p, trials);
-
-      // Create histogram bins
-      let bins = {};
-      data.forEach(val => {
-        let key = val.toFixed(2);
-        bins[key] = (bins[key] || 0) + 1;
-      });
-
-      const labels = Object.keys(bins);
-      const counts = Object.values(bins);
+    function drawChart() {
+      console.log("Button clicked");
 
       const ctx = document.getElementById("chart").getContext("2d");
 
-      // Destroy previous chart if it exists
       if (window.chart) {
         window.chart.destroy();
       }
 
-      // Create new chart
       window.chart = new Chart(ctx, {
         type: "bar",
         data: {
-          labels: labels,
+          labels: ["A", "B", "C", "D"],
           datasets: [{
-            label: "Frequency of p-hat",
-            data: counts
+            label: "Test Data",
+            data: [5, 10, 3, 7]
           }]
-        },
-        options: {
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: "p-hat"
-              }
-            },
-            y: {
-              title: {
-                display: true,
-                text: "Frequency"
-              }
-            }
-          }
         }
       });
     }
