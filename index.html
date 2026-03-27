@@ -28,18 +28,33 @@
 
 <br><br>
 
-<button onclick="runSimulation()">Run Simulation</button>
+<label>Confidence Level:</label>
+<select id="conf">
+  <option value="1.645">90%</option>
+  <option value="1.96" selected>95%</option>
+  <option value="2.576">99%</option>
+</select>
+
+<br><br>
+
+<button onclick="startSimulation()">Run Simulation</button>
+<button onclick="togglePause()">Pause / Resume</button>
 
 <br><br>
 
 <canvas id="chart" width="1100" height="550" style="border:1px solid black;"></canvas>
 
 <script>
-function simulate(n, p, trials) {
+let animationIndex = 0;
+let paused = false;
+let storedData = null;
+let storedIntervals = null;
+let storedTrueP = null;
+
+// --- SIMULATION ---
+function simulate(n, p, trials, z) {
   let results = [];
   let intervals = [];
-
-  let z = 1.96;
 
   for (let i = 0; i < trials; i++) {
     let successes = 0;
@@ -60,16 +75,48 @@ function simulate(n, p, trials) {
   return { results, intervals };
 }
 
-function runSimulation() {
+// --- START ---
+function startSimulation() {
   const n = parseInt(document.getElementById("n").value);
   const p = parseFloat(document.getElementById("p").value);
   const trials = parseInt(document.getElementById("trials").value);
+  const z = parseFloat(document.getElementById("conf").value);
 
-  const sim = simulate(n, p, trials);
+  const sim = simulate(n, p, trials, z);
 
-  drawPlot(sim.results, sim.intervals, p);
+  storedData = sim.results;
+  storedIntervals = sim.intervals;
+  storedTrueP = p;
+
+  animationIndex = 0;
+  paused = false;
+
+  animate();
 }
 
+// --- PAUSE ---
+function togglePause() {
+  paused = !paused;
+  if (!paused) animate();
+}
+
+// --- ANIMATION LOOP ---
+function animate() {
+  if (paused) return;
+  if (animationIndex > storedData.length) return;
+
+  drawPlot(
+    storedData.slice(0, animationIndex),
+    storedIntervals.slice(0, animationIndex),
+    storedTrueP
+  );
+
+  animationIndex++;
+
+  setTimeout(animate, 20);
+}
+
+// --- DRAW ---
 function drawPlot(data, intervals, trueP) {
   const canvas = document.getElementById("chart");
   const ctx = canvas.getContext("2d");
@@ -78,7 +125,7 @@ function drawPlot(data, intervals, trueP) {
 
   const padding = 80;
 
-  // --- COVERAGE CALCULATION ---
+  // --- COVERAGE ---
   let count = 0;
   intervals.forEach(interval => {
     if (interval.lower <= trueP && interval.upper >= trueP) {
@@ -86,13 +133,14 @@ function drawPlot(data, intervals, trueP) {
     }
   });
 
-  let coverage = (count / intervals.length * 100).toFixed(1);
+  let coverage = intervals.length > 0
+    ? (count / intervals.length * 100).toFixed(1)
+    : 0;
 
-  // --- TITLE ---
   ctx.font = "18px Arial";
   ctx.fillText(
-    "95% confidence intervals, " + coverage + "% of the sample intervals obtained included the true proportion π",
-    canvas.width / 2 - 350,
+    "Confidence intervals, " + coverage + "% included π",
+    canvas.width / 2 - 200,
     30
   );
 
@@ -103,14 +151,10 @@ function drawPlot(data, intervals, trueP) {
   ctx.lineTo(canvas.width - padding, canvas.height - padding);
   ctx.stroke();
 
-  // X-axis label
   ctx.fillText("Trial", canvas.width / 2, canvas.height - 20);
-
-  // Y-axis label (p-hat with bar)
-  ctx.font = "16px Arial";
   ctx.fillText("p̄", padding - 30, padding - 10);
 
-  // --- Y TICKS ---
+  // Y ticks
   for (let i = 0; i <= 10; i++) {
     let val = i / 10;
     let y = canvas.height - padding - val * (canvas.height - 2 * padding);
@@ -123,7 +167,7 @@ function drawPlot(data, intervals, trueP) {
     ctx.stroke();
   }
 
-  // --- TRUE p LINE ---
+  // TRUE LINE
   let yTrue = canvas.height - padding - trueP * (canvas.height - 2 * padding);
 
   ctx.beginPath();
@@ -139,9 +183,9 @@ function drawPlot(data, intervals, trueP) {
   ctx.strokeStyle = "black";
   ctx.lineWidth = 1;
 
-  // --- CONFIDENCE INTERVALS ---
+  // INTERVALS
   intervals.forEach((interval, i) => {
-    let x = padding + i / intervals.length * (canvas.width - 2 * padding);
+    let x = padding + i / storedIntervals.length * (canvas.width - 2 * padding);
 
     let yLower = canvas.height - padding - interval.lower * (canvas.height - 2 * padding);
     let yUpper = canvas.height - padding - interval.upper * (canvas.height - 2 * padding);
@@ -158,9 +202,9 @@ function drawPlot(data, intervals, trueP) {
     ctx.stroke();
   });
 
-  // --- DOTS ---
+  // DOTS
   data.forEach((phat, i) => {
-    let x = padding + i / data.length * (canvas.width - 2 * padding);
+    let x = padding + i / storedData.length * (canvas.width - 2 * padding);
     let y = canvas.height - padding - phat * (canvas.height - 2 * padding);
 
     ctx.beginPath();
