@@ -1,43 +1,16 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Chart Test</title>
-</head>
-
 <body>
-  <h2>Test Chart</h2>
 
-  <button onclick="drawChart()">Click Me</button>
+<h2>Test Button</h2>
 
-  <br><br>
+<button onclick="test()">Click Me</button>
 
-  <canvas id="chart"></canvas>
-
-  <!-- Load Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <script>
-    function drawChart() {
-      console.log("Button clicked");
-
-      const ctx = document.getElementById("chart").getContext("2d");
-
-      if (window.chart) {
-        window.chart.destroy();
-      }
-
-      window.chart = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: ["A", "B", "C", "D"],
-          datasets: [{
-            label: "Test Data",
-            data: [5, 10, 3, 7]
-          }]
-        }
-      });
-    }
-  </script>
+<script>
+function test() {
+  alert("WORKING");
+}
+</script>
 
 </body>
 </html>
