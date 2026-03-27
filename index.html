@@ -2,13 +2,42 @@
 <html>
 <body>
 
-<h2>Test Button</h2>
+<h2>Chart Test</h2>
 
-<button onclick="test()">Click Me</button>
+<button onclick="drawChart()">Click Me</button>
+
+<br><br>
+
+<canvas id="chart"></canvas>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-function test() {
-  alert("WORKING");
+function drawChart() {
+  alert("Button works");
+
+  if (typeof Chart === "undefined") {
+    alert("Chart.js NOT loaded");
+    return;
+  }
+
+  const ctx = document.getElementById("chart").getContext("2d");
+
+  if (window.chart) {
+    window.chart.destroy();
+  }
+
+  window.chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["A", "B", "C"],
+      datasets: [{
+        label: "Test Data",
+        data: [5, 10, 3]
+      }]
+    }
+  });
 }
 </script>
 
