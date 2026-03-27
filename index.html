@@ -31,7 +31,7 @@
 
 <br><br>
 
-<canvas id="chart" width="500" height="300" style="border:1px solid black;"></canvas>
+<canvas id="chart" width="800" height="400" style="border:1px solid black;"></canvas>
 
 <script>
 function simulate(n, p, trials) {
@@ -57,19 +57,16 @@ function runSimulation() {
 
   const data = simulate(n, p, trials);
 
-  
-function drawHistogram(data) {
+  drawDotPlot(data);
+}
+
+function drawDotPlot(data) {
   const canvas = document.getElementById("chart");
   const ctx = canvas.getContext("2d");
 
-  // Make canvas wider
-  canvas.width = 800;
-  canvas.height = 400;
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Axis padding
-  const padding = 50;
+  const padding = 60;
 
   // Draw axes
   ctx.beginPath();
@@ -78,24 +75,32 @@ function drawHistogram(data) {
   ctx.lineTo(canvas.width - padding, canvas.height - padding);
   ctx.stroke();
 
-  // Labels
+  // Axis labels
   ctx.font = "14px Arial";
   ctx.fillText("p-hat", canvas.width / 2, canvas.height - 10);
+
   ctx.save();
-  ctx.translate(15, canvas.height / 2);
+  ctx.translate(20, canvas.height / 2);
   ctx.rotate(-Math.PI / 2);
   ctx.fillText("Trial", 0, 0);
   ctx.restore();
 
+  // X-axis ticks (0 to 1)
+  for (let i = 0; i <= 10; i++) {
+    let val = i / 10;
+    let x = padding + val * (canvas.width - 2 * padding);
+
+    ctx.fillText(val.toFixed(1), x - 10, canvas.height - padding + 15);
+
+    ctx.beginPath();
+    ctx.moveTo(x, canvas.height - padding);
+    ctx.lineTo(x, canvas.height - padding + 5);
+    ctx.stroke();
+  }
+
   // Plot dots
-  const xMin = 0;
-  const xMax = 1;
-
   data.forEach((phat, i) => {
-    // Map p-hat to x position
-    let x = padding + (phat - xMin) / (xMax - xMin) * (canvas.width - 2 * padding);
-
-    // Map trial index to y position
+    let x = padding + phat * (canvas.width - 2 * padding);
     let y = padding + i / data.length * (canvas.height - 2 * padding);
 
     ctx.beginPath();
@@ -104,8 +109,6 @@ function drawHistogram(data) {
     ctx.fill();
   });
 }
-
-  
 </script>
 
 </body>
