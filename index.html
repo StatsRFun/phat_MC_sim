@@ -2,7 +2,6 @@
 <html>
 <head>
   <title>Monte Carlo p-hat Simulator</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -36,6 +35,10 @@
   <h3>Distribution of p-hat</h3>
   <canvas id="chart"></canvas>
 
+  <!-- Load Chart.js FIRST -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Your JavaScript -->
   <script>
     function simulate(n, p, trials) {
       let results = [];
@@ -54,12 +57,15 @@
     }
 
     function runSimulation() {
+      console.log("Simulation started");
+
       const n = parseInt(document.getElementById("n").value);
       const p = parseFloat(document.getElementById("p").value);
       const trials = parseInt(document.getElementById("trials").value);
 
       const data = simulate(n, p, trials);
 
+      // Create histogram bins
       let bins = {};
       data.forEach(val => {
         let key = val.toFixed(2);
@@ -69,18 +75,38 @@
       const labels = Object.keys(bins);
       const counts = Object.values(bins);
 
-      if (window.chart) window.chart.destroy();
-
       const ctx = document.getElementById("chart").getContext("2d");
 
+      // Destroy previous chart if it exists
+      if (window.chart) {
+        window.chart.destroy();
+      }
+
+      // Create new chart
       window.chart = new Chart(ctx, {
         type: "bar",
         data: {
           labels: labels,
           datasets: [{
-            label: "Frequency",
+            label: "Frequency of p-hat",
             data: counts
           }]
+        },
+        options: {
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "p-hat"
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: "Frequency"
+              }
+            }
+          }
         }
       });
     }
